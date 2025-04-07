@@ -197,18 +197,19 @@ def specific_input_setup(device):
 #########################
 
 def read_event(event):
-    
     event = event.code
 
-    if HOME == event:
+    # if the home button is pressed the robot will shut off
+    if event == HOME:
         raise Exception('Home Button Pressed')
     
-    if LB == event:
+    # checks if the reverse button is pressed
+    if event == LB:
         in_reverse = True
     else:
         in_reverse = False
     
-
+    # if the right joystick is moved the movement varubles are changed
     if event == R_JOY_X or event == R_JOY_Y:
         right_joystick_moved(R_JOY_Y, R_JOY_X, event.value)
 
