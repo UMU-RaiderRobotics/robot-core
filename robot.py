@@ -280,8 +280,28 @@ def input_loop():
         for event in paired_controler.read():
             read_event(event)
     
+    # change velocity to acceleration
+    left_velocity = left_acceleration
+    right_velocity = right_acceleration
 
+    # clamp velocity to [-1, 1]
+    left_velocity = min(max(left_velocity, -1), 1)
+    right_velocity = min(max(right_velocity, -1), 1)
 
+    # speed scale
+    scale_min = 0.3
+
+    # change in velcoity scale over time
+    delta = 0.0001
+
+    # Increase / Decrease speed scale based on position of joysitck
+    if abs(left_acceleration) > 0.8 or abs(right_acceleration) > 0.8:
+        scale += delta
+    else:
+        scale -= delta
+    
+    # Clamp scale to [0.3, 1]
+    scale = min(max(scale, scale_min), 1)
 
 
 
