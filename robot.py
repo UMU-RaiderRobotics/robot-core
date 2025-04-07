@@ -163,9 +163,9 @@ HOME  = ecodes.BTN_MODE
 in_reverse = False
 speed_scale = 0.3
 input_event = None
-right_stick_int_pos = left_stick_int_pos = 0
-int_left_velocity = int_right_velocity = 0
-int_left_acceleration = int_right_acceleration = 0
+joystick_x_pos = joystick_y_pos = 0
+left_velocity = right_velocity = 0
+left_acceleration = right_acceleration = 0
 
 def specific_input_setup(device):
     global L_JOY_X, L_JOY_Y, R_JOY_X, R_JOY_Y, BACK, MIN, MAX
@@ -189,7 +189,7 @@ def specific_input_setup(device):
             MIN = 0         # Joystick min
             MAX = 2**8-1    # Joystick max
         
-    right_stick_int_pos = left_stick_int_pos = MAX/2
+    joystick_x_pos = joystick_y_pos = MAX/2
 
 
 #########################
@@ -215,23 +215,48 @@ def read_event(event):
 
 
 
-def right_joystick_moved(joy_x_pos, joy_y_pos, event_value):
+def right_joystick_moved(joy_x, joy_y, event_value):
 
     # These if statements shift the range of the joystick
     # to [-1, 1]
-    if joy_x_pos:
-        right_stick_int_pos = event_value / MAX * 2 - 1
+    if joy_x:
+        joystick_x_pos = event_value / MAX * 2 - 1
     
-    if joy_y_pos:
-        right_stick_int_pos = event_value / MAX * 2 - 1
+    if joy_y:
+        joystick_y_pos = event_value / MAX * 2 - 1
     
     # if the value of the joystick is less then the 
     # DEAD_ZONE value, it turns it to 0
-    if abs(joy_x_pos) < DEAD_ZONE: joy_x_pos = 0
-    if abs(joy_y_pos) < DEAD_ZONE: joy_y_pos = 0
+    if abs(joystick_x_pos) < DEAD_ZONE: joy_x = 0
+    if abs(joystick_y_pos) < DEAD_ZONE: joy_y = 0
 
-    # Finds angle fo joystick for acceleration later
+    # calculates reverse value
+    rev = bool_to_int(in_reverse)
+
+    # Finds angle of joystick for acceleration
+    theta = atan2(joystick_x_pos, -joystick_y_pos * rev)
     
+    # Radius of joystick from center, then clamps it to [0,1]
+    # as the device is not perfect
+    radius = dist((0,0), (joystick_x_pos, joystick_y_pos))
+    radius = min(radius, 1)
+
+    # Calculates Acceleration
+    left_acceleration = -sin(theta) + cos(theta)
+    right_acceleration = sin(theta) + cos(theta)
+
+    # clamp these values to [-1, 1]
+    left_acceleration = min(max(left_acceleration, -1), 1)
+    right_acceleration = min(max(right_acceleration, -1), 1)
+
+    # Scale these values by the radius
+    left_acceleration *= radius
+    right_acceleration *= radius
+
+    # Round to edge values using the dead zone
+    left_acceleration = 0 if abs(left_acceleration) < DEAD_ZONE else left_acceleration
+    right_acceleration = 0 if abs(right_acceleration) < DEAD_ZONE else right_acceleration
+
 
 
 
