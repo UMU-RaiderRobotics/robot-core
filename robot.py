@@ -276,10 +276,17 @@ def main():
 def input_loop():
     read_list, write_list, exp_list = select([dev.fd], [], [], 0.0001)
 
+    # reads the list of actions from the paired device
     if read_list:
         for event in paired_controler.read():
             read_event(event)
     
+    # uses inputs to calculate new physics vars
+    physics_calculations()
+    
+
+# Calculates physics perameriters
+def physics_calculations():
     # change velocity to acceleration
     left_velocity = left_acceleration
     right_velocity = right_acceleration
@@ -303,7 +310,9 @@ def input_loop():
     # Clamp scale to [0.3, 1]
     scale = min(max(scale, scale_min), 1)
 
-
+    # Round to edge values with DEAD_ZONE
+    left_velocity = 0 if abs(left_velocity) < 0.0 else left_velocity
+    right_velocity = 0 if abs(right_velocity) < DEAD_ZONE else right_velocity
 
 
 
